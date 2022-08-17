@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"multiNews/pkg/storage"
 	"net/http"
+	"strings"
+	"time"
 )
 
 /*Определяем стандартные RSS-структуры*/
@@ -48,7 +50,18 @@ func Parser(url string) ([]storage.NewsRecord, error) {
 		n.Title = item.Title
 		n.Description = item.Description
 		n.Link = item.Link
-		n.PublicTime = item.PubDate
+		// обработка даты из формата RSS и стринга в Unix Time
+		item.PubDate = strings.ReplaceAll(item.PubDate, ",", "")
+		// подгоняем по формату RFC1123Z
+		timeResult, err := time.Parse("Mon 2 Jan 2006 15:04:05 -0700", item.PubDate)
+		if err != nil {
+			// если не получилось гоним в RFC850
+			timeResult, err = time.Parse("Mon 2 Jan 2006 15:04:05 GMT", item.PubDate)
+		}
+		if err == nil {
+			// если ошибки конвертации пустые, то переводим в unix и заполняем
+			n.PublicTime = timeResult.Unix()
+		}
 
 		news = append(news, n)
 	}
