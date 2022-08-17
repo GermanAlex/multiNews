@@ -28,7 +28,7 @@ func (api *API) Router() *mux.Router {
 // определяем эндпоинты, у нас их 2 - получение списка из rss-потока и приложение, созданное экспертом курса
 func (api *API) endpoints() {
 	api.r.HandleFunc("/news/{n}", api.listnews).Methods(http.MethodGet)
-	api.r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./cmd/app/webapp"))))
+	api.r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./webapp"))))
 }
 
 // handle для добавления новостей

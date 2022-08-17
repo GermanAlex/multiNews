@@ -25,6 +25,7 @@ type NewsRecord struct {
 
 // Создаем подключения к БД
 func New() (*DB, error) {
+	// for test connstr
 	os.Setenv("dbnews", "postgres://postgres:postgres@localhost/postgres")
 	connectionStr := os.Getenv("dbnews")
 	if connectionStr == "" {
