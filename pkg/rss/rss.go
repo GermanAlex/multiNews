@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 /*Определяем стандартные RSS-структуры*/
@@ -48,7 +50,8 @@ func Parser(url string) ([]storage.NewsRecord, error) {
 	for _, item := range f.Channel.Items {
 		var n storage.NewsRecord
 		n.Title = item.Title
-		n.Description = item.Description
+		// remove tag from description bluemonday
+		n.Description = bluemonday.StripTagsPolicy().Sanitize(item.Description)
 		n.Link = item.Link
 		// обработка даты из формата RSS и стринга в Unix Time
 		item.PubDate = strings.ReplaceAll(item.PubDate, ",", "")
