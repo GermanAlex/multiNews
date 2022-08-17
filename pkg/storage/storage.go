@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"log"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -24,6 +25,7 @@ type NewsRecord struct {
 
 // Создаем подключения к БД
 func New() (*DB, error) {
+	os.Setenv("dbnews", "postgres://postgres:postgres@localhost/postgres")
 	connectionStr := os.Getenv("dbnews")
 	if connectionStr == "" {
 		return nil, errors.New("не указана строка подключения к базе данных")
@@ -46,23 +48,26 @@ func (db *DB) InsertNews(news []NewsRecord) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(context.Background())
 
-	for _, newsRecord := range news {
+	for _, newsRec := range news {
+		log.Println(newsRec.Title)
 		err = tx.QueryRow(context.Background(), `
 			INSERT INTO news (title, descr, public_time, link)
-			VALUES ($1, $2, $3, $4);
+			VALUES ($1, $2, $3, $4)
+			RETURNING id;
 			`,
-			newsRecord.Title,
-			newsRecord.Description,
-			newsRecord.PublicTime,
-			newsRecord.Link,
+			newsRec.Title,
+			newsRec.Description,
+			newsRec.PublicTime,
+			newsRec.Link,
 		).Scan(&id)
 
 		if err != nil {
+			tx.Rollback(context.Background())
 			return err
 		}
 	}
+	tx.Commit(context.Background())
 	return nil
 }
 
